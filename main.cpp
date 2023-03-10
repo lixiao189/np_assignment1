@@ -28,8 +28,8 @@ int main(int argc, char *argv[]) {
   char *ptr;
   ptr = randomType(); // Get a random arithemtic operator.
 
-  double f1, f2, fresult;
-  int i1, i2, iresult;
+  double f1, f2, fresult = 0.0;
+  int i1, i2, iresult = 0;
   /*
   printf("ptr = %p, \t", ptr );
   printf("string = %s, \n", ptr );
