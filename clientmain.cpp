@@ -1,6 +1,12 @@
+#include <arpa/inet.h>
+#include <iostream>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+
 /* You will to add includes here */
 
 // Enable if you want debugging to be printed, see examble below.
@@ -9,6 +15,34 @@
 
 // Included to get the support library
 #include "calcLib.h"
+
+/**
+ * @brief Translate host to IP
+ *
+ */
+sockaddr_in *host2addr(const char *host, const int port) {
+  hostent *hostinfo;
+  in_addr **addr_list;
+  sockaddr_in *serv_addr;
+
+  serv_addr = (sockaddr_in *)malloc(sizeof(sockaddr_in));
+  memset(serv_addr, 0, sizeof(sockaddr_in));
+
+  hostinfo = gethostbyname(host);
+  addr_list = (struct in_addr **)hostinfo->h_addr_list;
+
+  // Get IP address
+  char *ip = inet_ntoa(*addr_list[0]);
+
+  if (inet_pton(AF_INET, ip, &(serv_addr->sin_addr)) <= 0) {
+    printf("Invalid address/ Address not supported\n");
+    return NULL;
+  }
+  serv_addr->sin_family = AF_INET;
+  serv_addr->sin_port = htons(port);
+
+  return serv_addr;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -28,4 +62,22 @@ int main(int argc, char *argv[]) {
 #ifdef DEBUG
   printf("Host %s, and port %d.\n", Desthost, port);
 #endif
+
+  // Translate hostname to IP address
+  sockaddr_in *serv_addr = host2addr(Desthost, port);
+  int sock = 0;
+
+  // 创建套接字
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    printf("Socket creation error\n");
+    return -1;
+  }
+
+  // 连接服务器
+  if (connect(sock, (struct sockaddr *)serv_addr, sizeof(sockaddr_in)) < 0) {
+    printf("Connection Failed\n");
+    return -1;
+  }
+
+  free(serv_addr);
 }
