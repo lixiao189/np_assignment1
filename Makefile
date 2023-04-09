@@ -1,4 +1,4 @@
-CC_FLAGS= -Wall -I.
+CC_FLAGS= -Wall -I. -DDEBUG
 LD_FLAGS= -Wall -L./ 
 
 

@@ -13,17 +13,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-/* You will to add includes here */
-
-// Enable if you want debugging to be printed, see examble below.
-// Alternative, pass CFLAGS=-DDEBUG to make, make CFLAGS=-DDEBUG
-#define DEBUG
-
 // Included to get the support library
 #include "calcLib.h"
 
 const int gVersionCount = 3;
 const char gVersions[3][10] = {"1.0", "1.1", "1.2"};
+const size_t gCalcResultLen = 100;
 
 bool is_in_arith(char *target) {
   char arith[][5] = {"add", "div", "mul", "sub", "fadd", "fdiv", "fmul", "fsub"};
@@ -38,8 +33,8 @@ bool is_in_arith(char *target) {
 }
 
 char *calculate(char *op, char *arg1, char *arg2) {
-  char *result = (char *)malloc(100);
-  memset(result, 0, 100);
+  char *result = (char *)malloc(gCalcResultLen);
+  memset(result, 0, gCalcResultLen);
   if (strncmp(op, "add", 3) == 0) {
     snprintf(result, sizeof(result), "%d", atoi(arg1) + atoi(arg2));
   } else if (strncmp(op, "div", 3) == 0) {
@@ -103,9 +98,7 @@ int main(int argc, char *argv[]) {
 
   /* Do magic */
   int port = atoi(Destport);
-#ifdef DEBUG
   printf("Host %s, and port %d.\n", Desthost, port);
-#endif
 
   // Translate hostname to IP address
   sockaddr_in *serv_addr = host2addr(Desthost, port);
@@ -121,6 +114,17 @@ int main(int argc, char *argv[]) {
   if (connect(sock, (struct sockaddr *)serv_addr, sizeof(sockaddr_in)) < 0) {
     printf("Connection Failed\n");
     return -1;
+  } else {
+#ifdef DEBUG
+    sockaddr_in cli_addr;
+    socklen_t len = sizeof(cli_addr);
+    if (getsockname(sock, (struct sockaddr *)&cli_addr, &len) < 0) {
+      printf("getsockname failed");
+      return -1;
+    }
+
+    printf("Connected to %s:%s local %s:%d\n", Desthost, Destport, inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+#endif
   }
 
   const int N = 1024;
@@ -138,6 +142,7 @@ int main(int argc, char *argv[]) {
 
   char cur_version[10];
   memset(cur_version, 0, sizeof(cur_version));
+  char last_result[gCalcResultLen];
   do {
     memset(buffer, 0, N); // Clear buffer
     len = read(sock, buffer, N);
@@ -147,18 +152,10 @@ int main(int argc, char *argv[]) {
       if (buffer[i] != '\n') {
         package[tail++] = buffer[i];
       } else {
-
-#ifdef DEBUG
-        printf("Receive server message: [%s]\n", package);
-#endif
-
         if (tail == 0) {
           // package header finished
           is_header = false;
 
-#ifdef DEBUG
-          printf("Current protocol version is: [%s]\n", cur_version);
-#endif
           // check version
           bool flag = false;
           int cur_version_len = strlen(cur_version);
@@ -195,17 +192,25 @@ int main(int argc, char *argv[]) {
 
           char *op = strtok(cur_package, sep);
           if (is_in_arith(op)) {
-            char *arg1 = strtok(NULL, sep);
-            char *arg2 = strtok(NULL, sep);
+            char *arg1, *arg2, *result;
+            arg1 = strtok(NULL, sep);
+            arg2 = strtok(NULL, sep);
+            printf("ASSIGNMENT: %s %s %s\n", op, arg1, arg2);
 
-            char *result = calculate(op, arg1, arg2);
+            result = calculate(op, arg1, arg2);
+            memset(last_result, 0, sizeof(last_result));
+            strncpy(last_result, result, sizeof(last_result));
+#ifdef DEBUG
+            printf("Calculated the result to %s\n", result);
+#endif
             write(sock, result, strlen(result));
             write(sock, "\n", 1);
-
             free(result);
           } else {
-            puts("Operation not supported");
-            return -1;
+            if (strncmp(op, "OK", 2) == 0) {
+              printf("OK(myresult=%s)", last_result);
+            }
+            return 0;
           }
         }
 

@@ -6,10 +6,6 @@
 // Included to get the support library
 #include "calcLib.h"
 
-// Enable if you want debugging to be printed, see examble below.
-// Alternative, pass CFLAGS=-DDEBUG to make, make CFLAGS=-DDEBUG
-#define DEBUG
-
 using namespace std;
 
 int main(int argc, char *argv[]) {
