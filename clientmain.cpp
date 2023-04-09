@@ -22,12 +22,12 @@
 // Included to get the support library
 #include "calcLib.h"
 
-char *arith[] = {"add", "div", "mul", "sub", "fadd", "fdiv", "fmul", "fsub"};
-
 const int gVersionCount = 3;
 const char gVersions[3][10] = {"1.0", "1.1", "1.2"};
 
-bool is_in_arith(char *target, char **arith) {
+bool is_in_arith(char *target) {
+  char arith[][5] = {"add", "div", "mul", "sub", "fadd", "fdiv", "fmul", "fsub"};
+
   const int arith_len = 8;
   for (int i = 0; i < arith_len; i++) {
     if (strncmp(target, arith[i], strlen(arith[i])) == 0) {
@@ -41,21 +41,21 @@ char *calculate(char *op, char *arg1, char *arg2) {
   char *result = (char *)malloc(100);
   memset(result, 0, 100);
   if (strncmp(op, "add", 3) == 0) {
-    sprintf(result, "%d", atoi(arg1) + atoi(arg2));
+    snprintf(result, sizeof(result), "%d", atoi(arg1) + atoi(arg2));
   } else if (strncmp(op, "div", 3) == 0) {
-    sprintf(result, "%d", atoi(arg1) / atoi(arg2));
+    snprintf(result, sizeof(result), "%d", atoi(arg1) / atoi(arg2));
   } else if (strncmp(op, "mul", 3) == 0) {
-    sprintf(result, "%d", atoi(arg1) * atoi(arg2));
+    snprintf(result, sizeof(result), "%d", atoi(arg1) * atoi(arg2));
   } else if (strncmp(op, "sub", 3) == 0) {
-    sprintf(result, "%d", atoi(arg1) - atoi(arg2));
+    snprintf(result, sizeof(result), "%d", atoi(arg1) - atoi(arg2));
   } else if (strncmp(op, "fadd", 4) == 0) {
-    sprintf(result, "%f", atof(arg1) + atof(arg2));
+    snprintf(result, sizeof(result), "%f", atof(arg1) + atof(arg2));
   } else if (strncmp(op, "fdiv", 4) == 0) {
-    sprintf(result, "%f", atof(arg1) / atof(arg2));
+    snprintf(result, sizeof(result), "%f", atof(arg1) / atof(arg2));
   } else if (strncmp(op, "fmul", 4) == 0) {
-    sprintf(result, "%f", atof(arg1) * atof(arg2));
+    snprintf(result, sizeof(result), "%f", atof(arg1) * atof(arg2));
   } else if (strncmp(op, "fsub", 4) == 0) {
-    sprintf(result, "%f", atof(arg1) - atof(arg2));
+    snprintf(result, sizeof(result), "%f", atof(arg1) - atof(arg2));
   }
   return result;
 }
@@ -194,13 +194,15 @@ int main(int argc, char *argv[]) {
           char sep[] = " ";
 
           char *op = strtok(cur_package, sep);
-          if (is_in_arith(op, arith)) {
+          if (is_in_arith(op)) {
             char *arg1 = strtok(NULL, sep);
             char *arg2 = strtok(NULL, sep);
 
             char *result = calculate(op, arg1, arg2);
             write(sock, result, strlen(result));
             write(sock, "\n", 1);
+
+            free(result);
           } else {
             puts("Operation not supported");
             return -1;
