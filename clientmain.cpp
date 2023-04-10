@@ -208,7 +208,9 @@ int main(int argc, char *argv[]) {
             free(result);
           } else {
             if (strncmp(op, "OK", 2) == 0) {
-              printf("OK(myresult=%s)", last_result);
+              printf("OK (myresult=%s)", last_result);
+            } else {
+              printf("ERROR");
             }
             return 0;
           }
