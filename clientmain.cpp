@@ -68,6 +68,11 @@ sockaddr_in *host2addr(const char *host, const int port) {
   memset(serv_addr, 0, sizeof(sockaddr_in));
 
   hostinfo = gethostbyname(host);
+  if (!hostinfo) {
+    printf("Invalid address/ Address not supported\n");
+    return NULL;
+  }
+
   addr_list = (struct in_addr **)hostinfo->h_addr_list;
 
   // Get IP address
