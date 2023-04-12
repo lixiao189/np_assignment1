@@ -44,13 +44,13 @@ char *calculate(char *op, char *arg1, char *arg2) {
   } else if (strncmp(op, "sub", 3) == 0) {
     snprintf(result, sizeof(result), "%d", atoi(arg1) - atoi(arg2));
   } else if (strncmp(op, "fadd", 4) == 0) {
-    snprintf(result, sizeof(result), "%f", atof(arg1) + atof(arg2));
+    snprintf(result, sizeof(result), "%8.8g", atof(arg1) + atof(arg2));
   } else if (strncmp(op, "fdiv", 4) == 0) {
-    snprintf(result, sizeof(result), "%f", atof(arg1) / atof(arg2));
+    snprintf(result, sizeof(result), "%8.8g", atof(arg1) / atof(arg2));
   } else if (strncmp(op, "fmul", 4) == 0) {
-    snprintf(result, sizeof(result), "%f", atof(arg1) * atof(arg2));
+    snprintf(result, sizeof(result), "%8.8g", atof(arg1) * atof(arg2));
   } else if (strncmp(op, "fsub", 4) == 0) {
-    snprintf(result, sizeof(result), "%f", atof(arg1) - atof(arg2));
+    snprintf(result, sizeof(result), "%8.8g", atof(arg1) - atof(arg2));
   }
   return result;
 }
@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
 
             if (target_version_len != cur_version_len) {
               continue;
-            } else if (strncmp(gVersions[i], cur_version, cur_version_len)) {
+            } else if (!strncmp(gVersions[i], cur_version, cur_version_len)) {
               flag = true;
             }
           }
